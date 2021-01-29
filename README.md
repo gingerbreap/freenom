@@ -17,11 +17,13 @@ Documentation: [English version](https://github.com/luolongfei/freenom/blob/mast
 
 [📪  配置发信邮箱](#--配置发信邮箱)
 
-[🚧  配置脚本](#--配置脚本)
+~~🚧  配置脚本~~
 
-[🎈  添加计划任务](#--添加计划任务)
+~~🎈  添加计划任务~~
 
-[☕  验证](#--验证)
+~~☕  验证~~
+
+（以上三部分请访问[原仓库](https://github.com/luolongfei/freenom)）
 
 [🤣  本项目最简单的使用方法](#--本项目最简单的使用方法)
 
@@ -51,7 +53,7 @@ Documentation: [English version](https://github.com/luolongfei/freenom/blob/mast
 ### 🎁  事前准备
 - 发信邮箱：为了方便理解又称机器人邮箱，用于发送通知邮件。目前支持`Gmail`、`QQ邮箱`以及`163邮箱`，程序会自动判断发信邮箱类型并使用合适的配置。推荐使用`Gmail`。
 - 收信邮箱：用于接收机器人发出的通知邮件。推荐使用`QQ邮箱`，`QQ邮箱`唯一的好处只是收到邮件会在`QQ`弹出消息。
-- VPS：随便一台服务器都行，系统推荐`Centos7`，另外PHP版本需在`php7.1`及以上。**（注：没有 VPS 也行，本项目支持在 Github Actions 上执行，完全白嫖，具体使用方法请参考「 [🤣  本项目最简单的使用方法](#--本项目最简单的使用方法) 」）**
+- ~~VPS：随便一台服务器都行，系统推荐`Centos7`，另外PHP版本需在`php7.1`及以上。~~**（注：本懒鬼在 Github Actions 上执行，完全白嫖，具体使用方法请参考「 [🤣  本项目最简单的使用方法](#--本项目最简单的使用方法) 」）**
 - 没有了
 
 ### 📪  配置发信邮箱
@@ -141,100 +143,6 @@ Telegram bot 有两个配置项，一个是`chatID`（对应`.env`文件中的`T
 
 *与通知相关的设置到此就完成了，下面可以愉快的配置本程序了* :)
 
-### 🚧  配置脚本
-所有操作均在Centos7系统下进行，其它Linux发行版大同小异
-#### 获取源码
-```bash
-$ mkdir -p /data/wwwroot/freenom
-$ cd /data/wwwroot/freenom
-
-# clone本仓库源码
-$ git clone https://github.com/luolongfei/freenom.git ./
-```
-
-#### 配置过程
-```bash
-# 复制配置文件模板
-$ cp .env.example .env
-
-# 编辑配置文件
-$ vim .env
-
-# .env文件里每个项目都有详细的说明，这里不再赘述，简言之，你需要把里面所有项都改成你自己的。需要注意的是多账户配置的格式：
-# e.g. MULTIPLE_ACCOUNTS='<账户1>@<密码1>|<账户2>@<密码2>|<账户3>@<密码3>'
-# 当然，若你只有单个账户，只配置FREENOM_USERNAME和FREENOM_PASSWORD就够了，单账户和多账户的配置会被合并在一起读取并去重。
-
-# 编辑完成后，按“Esc”回到命令模式，输入“:wq”回车即保存并退出，不会用vim编辑器的问下谷歌大爷:)
-```
-
-### 🎈  添加计划任务
-#### 安装crontabs以及cronie
-```bash
-$ yum -y install cronie crontabs
-
-# 验证crond是否安装及启动
-$ yum list cronie && systemctl status crond
-
-# 验证crontab是否安装
-$ yum list crontabs $$ which crontab && crontab -l
-```
-
-#### 打开任务表单，并编辑
-```bash
-$ crontab -e
-
-# 任务内容如下
-# 此任务的含义是在每天早上9点执行/data/wwwroot/freenom/路径下的run文件
-# 注意：某些情况下，crontab可能找不到你的php路径，下面的命令执行后会在freenom_crontab.log文件输出错误信息，你应该指定php路径：把下面的php替换为/usr/local/php/bin/php（根据实际情况）
-00 09 * * * cd /data/wwwroot/freenom/ && php run > freenom_crontab.log 2>&1
-```
-
-#### 重启crond守护进程（每次编辑任务表单后都需此步，以使任务生效）
-```bash
-$ systemctl restart crond
-```
-若要检查`计划任务`是否正常，你可以将上面的任务执行时间设置在几分钟后，然后等到任务执行完成，
-检查`/data/wwwroot/freenom/`目录下的`freenom_crontab.log`文件内容，是否有报错信息。常见的错误信息如下：
-- /bin/sh: php: command not found
-- /bin/sh: /usr/local/php: Is a directory
-
-*（点击即可展开或收起）*
-<details>
-    <summary>解决方案</summary>
-<br>
-
->
-> 执行
-> ```bash
-> $ whereis php
-> # 确定php的位置，一般输出为“php: /usr/local/php /usr/local/php/bin/php”，选长的那个即：/usr/local/php/bin/php
-> ```
-> 
-> 现在我们知道php的路径是`/usr/local/php/bin/php`（根据你自己系统的实际情况，可能不同），然后修改表单任务里的命令，把
-> 
-> `00 09 * * * cd /data/wwwroot/freenom/ && php run > freenom_crontab.log 2>&1`
-> 
-> 改为
-> 
-> `00 09 * * * cd /data/wwwroot/freenom/ && /usr/local/php/bin/php run > freenom_crontab.log 2>&1`
-> 
-> 更多参考：[点这里](https://stackoverflow.com/questions/7397469/why-is-crontab-not-executing-my-php-script)
->
-
-</details>
-
-当然，如果你的`计划任务`能正确找到`php路径`，没有错误，那你什么也不用做。
-
-*至此，所有的配置都已经完成，下面我们验证一下整个流程是否走通*:)
-
-### ☕  验证
-你可以先将`.env`中的`NOTICE_FREQ`的值改为1（即每次执行都推送通知），然后执行
-```bash
-$ cd /data/wwwroot/freenom/ && php run
-```
-不出意外的话，你将收到一封关于域名情况的邮件。
-
-<hr>
 
 ### 🤣  本项目最简单的使用方法
 上面说了一堆都是基于你有自己的`VPS`的情况下，如果没有`VPS`又想自动续期`Freenom`的域名，或者单纯不想配置那么多东西，
